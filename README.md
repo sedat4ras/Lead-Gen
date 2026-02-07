@@ -1,6 +1,8 @@
 # **Automated Local Lead Generation & Data Mining**
 This project is a sophisticated automation workflow built on n8n that extracts business data (Name, Phone, Website, etc.) from specific industries and geographical locations. By integrating the Google Places API (v1), it eliminates manual search processes and streams structured data directly into Google Sheets.
 
+![Automation Workflow](N8N-Workflow-Lead-Gen.png)
+
 ## **Project Purpose**
 To empower marketing and sales teams by identifying potential leads in targeted regions, gathering their contact details in a structured format, and eliminating 100% of the time lost to manual data entry.
 
@@ -42,6 +44,8 @@ Data Ingestion: The workflow triggers and fetches target cities and business cat
 
 ## **Results & Key Outcomes**
 +Efficiency: Transformed a process that would take hours of manual "copy-pasting" into a one-click automated task.
+
+![Database Output](Database-Output.png)
 
 +Data Integrity: Ensured 100% accuracy in capturing business phone numbers and URLs.
 
