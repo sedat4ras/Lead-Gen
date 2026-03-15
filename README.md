@@ -1,55 +1,105 @@
-# **Automated Local Lead Generation & Data Mining**
-This project is a sophisticated automation workflow built on n8n that extracts business data (Name, Phone, Website, etc.) from specific industries and geographical locations. By integrating the Google Places API (v1), it eliminates manual search processes and streams structured data directly into Google Sheets.
+# Lead-Gen — Automated Local Business Data Mining
+
+> An n8n automation workflow that extracts structured business data from Google Places API across multiple regions and industries, eliminating manual lead research entirely.
+
+[![n8n](https://img.shields.io/badge/Engine-n8n-EA4B71?style=flat-square&logo=n8n&logoColor=white)](https://n8n.io/)
+[![Google Places](https://img.shields.io/badge/API-Google_Places_v1-4285F4?style=flat-square&logo=googlemaps&logoColor=white)](https://developers.google.com/maps/documentation/places/web-service)
+[![Google Sheets](https://img.shields.io/badge/Output-Google_Sheets-34A853?style=flat-square&logo=googlesheets&logoColor=white)](https://www.google.com/sheets/about/)
+[![License](https://img.shields.io/badge/License-MIT-lightgrey?style=flat-square)]()
+
+---
+
+## Overview
+
+Lead-Gen empowers marketing and sales teams by automating the entire lead discovery process. Define your target regions and business categories in a Google Sheet, and the workflow handles everything — querying the Google Places API, normalizing nested responses, and streaming structured results back to your spreadsheet in real-time.
+
+## Workflow Architecture
 
 ![Automation Workflow](N8N-Workflow-Lead-Gen.png)
 
-## **Project Purpose**
-To empower marketing and sales teams by identifying potential leads in targeted regions, gathering their contact details in a structured format, and eliminating 100% of the time lost to manual data entry.
+```
+┌──────────────────┐     ┌──────────────────┐     ┌──────────────────┐
+│  Google Sheets   │     │  Google Sheets    │     │                  │
+│  (Locations Tab) │     │ (Placemarks Tab)  │     │  Merge Node      │
+│                  │     │                   │     │  (Cartesian       │
+│  Melbourne       │────►│  Dentists         │────►│   Product)       │
+│  Sydney          │     │  Plumbers         │     │                  │
+│  Brisbane        │     │  Electricians     │     │  "Dentists in    │
+│                  │     │                   │     │   Melbourne"     │
+└──────────────────┘     └──────────────────┘     └────────┬─────────┘
+                                                           │
+                                                  ┌────────▼─────────┐
+                                                  │  Google Places   │
+                                                  │  API (v1)        │
+                                                  │  POST + FieldMask│
+                                                  └────────┬─────────┘
+                                                           │
+                                                  ┌────────▼─────────┐
+                                                  │  JS Normalizer   │
+                                                  │  (Flatten JSON)  │
+                                                  └────────┬─────────┘
+                                                           │
+                                                  ┌────────▼─────────┐
+                                                  │  Google Sheets   │
+                                                  │  (Lead Results)  │
+                                                  └──────────────────┘
+```
 
-## **Technical Stack**
-n8n: Workflow automation and node management.
+## Features
 
-**Google Places API (v1):** Used for advanced local search and business detail extraction.
+| Feature | Description |
+|---------|-------------|
+| **Dynamic Query Generation** | Automatically combines locations and categories into exhaustive search combinations |
+| **Optimized API Calls** | `X-Goog-FieldMask` limits response to 5 essential fields, minimizing cost and latency |
+| **Data Normalization** | Custom JavaScript flattens nested API responses into spreadsheet-ready rows |
+| **Scalable Input** | Add new regions or industries directly in Google Sheets — no code changes needed |
+| **Real-Time Output** | Results streamed directly to a Lead Results sheet as they are processed |
 
-**Google Sheets:** Serves as the dynamic database for storing retrieved leads.
+## Data Fields Extracted
 
-**JavaScript (Node.js):** Custom Code nodes used for data processing, filtering, and query logic.
+| Field | Description |
+|-------|-------------|
+| Business Name | Display name from Google Places |
+| Phone Number | Primary contact phone |
+| Website | Business website URL |
+| Place ID | Unique Google Places identifier |
+| Search Location | Source query context for traceability |
 
-## **Workflow Logic**
-Data Ingestion: The workflow triggers and fetches target cities and business categories from two separate Google Sheet tabs: Locations and Placemarks.
+## Engineering Challenges Solved
 
-**Dynamic Query Generation:** A JavaScript-based node merges these inputs to create search strings (e.g., "Melbourne in Dentists").
+### Nested API Responses
+Google Places API returns deeply nested JSON arrays incompatible with flat spreadsheet columns. A custom JavaScript function maps each business into a flat object while preserving search location context.
 
-**API Integration:** The HTTP Request node sends a POST request to the Google Places API. It utilizes a FieldMask to request only essential data (ID, Phone, Website, Display Name), optimizing performance and cost.
+### Scalable Query Management
+A Merge node combined with JavaScript loop logic generates a **Cartesian product** of all locations and categories, enabling exhaustive multi-region, multi-industry scanning in a single execution.
 
-**Data Normalization:** A second JavaScript node flattens the complex, nested JSON response from the API into a clean, row-based format suitable for spreadsheets.
+### API Cost Control
+The `X-Goog-FieldMask` header strictly limits the response to five specific fields, minimizing data payload and staying within API quota limits.
 
-**Automated Logging:** The processed leads are appended to the Lead Results sheet in real-time.
-
-**Challenges & Engineering Solutions**
-**1. Handling Nested API Responses**
--The Issue: The Google Places API returns data in deeply nested arrays, which cannot be mapped directly to spreadsheet columns.
-
-+The Solution: I implemented a custom JavaScript function to map the API response, ensuring that each business is treated as a flat object while preserving the original search_location for context.
-
-**2. Scalable Query Management**
--The Issue: The need to scan multiple locations for multiple business types simultaneously.
-
-+The Solution: I used a Merge node combined with a loop logic in JavaScript to create a Cartesian product of all locations and categories, allowing for an exhaustive scan in a single execution.
-
-**3. API Optimization & Cost Control**
--The Issue: Requesting full business profiles is resource-heavy and increases latency/costs.
-
-+The Solution: I configured the X-Goog-FieldMask header to strictly limit the response to five specific fields, minimizing data payload and staying within API quota limits.
-
-## **Results & Key Outcomes**
-+Efficiency: Transformed a process that would take hours of manual "copy-pasting" into a one-click automated task.
+## Results
 
 ![Database Output](Database-Output.png)
 
-+Data Integrity: Ensured 100% accuracy in capturing business phone numbers and URLs.
+- **Efficiency:** Transforms hours of manual copy-pasting into a one-click automated task
+- **Data Integrity:** 100% accuracy in capturing business phone numbers and URLs
+- **Scalability:** Plug-and-play — new regions or industries added without modifying code
 
-+Scalability: The system is "plug-and-play"; new regions or industries can be added to the Google Sheet without modifying the underlying code.
+## Setup
 
-Contact
-For further information regarding the setup or to discuss the architecture of this workflow, feel free to reach out: Email: sudo@sedataras.com
+### Prerequisites
+
+- n8n instance (cloud or self-hosted)
+- Google Cloud project with Places API enabled
+- Google Sheets API credentials
+
+### Configuration
+
+1. Import `Lead-Gen-Workflow.json` into your n8n dashboard
+2. Connect your Google OAuth2 credentials
+3. Create a Google Sheet with three tabs: **Locations**, **Placemarks**, **Lead Results**
+4. Populate Locations and Placemarks with your target data
+5. Activate the workflow
+
+## Contact
+
+GitHub: [sedat4ras](https://github.com/sedat4ras) | Email: sudo@sedataras.com
